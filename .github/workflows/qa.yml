@@ -22,29 +22,41 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-          - name: Install Chrome & ChromeDriver
-          run: |
+      - name: Install Chrome & ChromeDriver
+        run: |
             sudo apt-get update
             sudo apt-get install -y wget unzip curl
         
-            # ✅ Install latest Google Chrome
+            echo "🟢 Installing Google Chrome..."
             wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
             sudo apt install -y ./google-chrome-stable_current_amd64.deb
             google-chrome --version
         
-            # ✅ Find matching ChromeDriver (for testing branch)
+            echo "🟢 Detecting Chrome version..."
             CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
             MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d'.' -f1)
             echo "Detected Chrome major version: $MAJOR_VERSION"
         
+            echo "🟢 Getting ChromeDriver download URL..."
             DRIVER_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${MAJOR_VERSION})
-            echo "Installing ChromeDriver version: $DRIVER_VERSION"
+            echo "ChromeDriver version: $DRIVER_VERSION"
         
+            echo "🟢 Downloading ChromeDriver..."
             wget -q "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
-            unzip chromedriver-linux64.zip
-            sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-            sudo chmod +x /usr/local/bin/chromedriver
         
+            echo "🟢 Unzipping and installing ChromeDriver..."
+            unzip -o chromedriver-linux64.zip
+            if [ -f chromedriver-linux64/chromedriver ]; then
+              sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+            elif [ -f chrome-linux64/chromedriver ]; then
+              sudo mv chrome-linux64/chromedriver /usr/local/bin/
+            else
+              echo "❌ ChromeDriver not found after unzip!"
+              ls -R
+              exit 1
+            fi
+        
+            sudo chmod +x /usr/local/bin/chromedriver
             chromedriver --version
         
 
