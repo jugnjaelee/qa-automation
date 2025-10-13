@@ -25,15 +25,17 @@ jobs:
       - name: Install Chrome & ChromeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip xvfb
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y unzip xvfb wget curl
+          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          CHROME_VERSION=$(google-chrome --version | cut -d " " -f3)
+          google-chrome --version
           DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE")
-          wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$DRIVER_VERSION/linux64/chromedriver-linux64.zip
+          echo "Installing ChromeDriver version: $DRIVER_VERSION"
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/$DRIVER_VERSION/linux64/chromedriver-linux64.zip"
           unzip chromedriver-linux64.zip
           sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
           sudo chmod +x /usr/local/bin/chromedriver
+          chromedriver --version
 
       - name: Run tests (headless)
         run: |
@@ -43,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: allure-res
+          path: allure-results
