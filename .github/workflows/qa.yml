@@ -22,20 +22,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Chrome & ChromeDriver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip xvfb wget curl
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          google-chrome --version
-          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE")
-          echo "Installing ChromeDriver version: $DRIVER_VERSION"
-          wget -q "https://storage.googleapis.com/chrome-for-testing-public/$DRIVER_VERSION/linux64/chromedriver-linux64.zip"
-          unzip chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
-          chromedriver --version
+          - name: Install Chrome & ChromeDriver
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y wget unzip curl
+        
+            # ✅ Install latest Google Chrome
+            wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo apt install -y ./google-chrome-stable_current_amd64.deb
+            google-chrome --version
+        
+            # ✅ Find matching ChromeDriver (for testing branch)
+            CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+            MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d'.' -f1)
+            echo "Detected Chrome major version: $MAJOR_VERSION"
+        
+            DRIVER_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${MAJOR_VERSION})
+            echo "Installing ChromeDriver version: $DRIVER_VERSION"
+        
+            wget -q "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
+            unzip chromedriver-linux64.zip
+            sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+            sudo chmod +x /usr/local/bin/chromedriver
+        
+            chromedriver --version
+        
 
       - name: Run tests (headless)
         run: |
